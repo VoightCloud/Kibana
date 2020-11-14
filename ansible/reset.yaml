@@ -1,0 +1,9 @@
+- name: Reset Kibana
+  hosts: localhost
+  vars:
+    namespace: monitoring
+
+  tasks:
+    - name: Reset Kibana
+      command: helm uninstall -n "{{ namespace }}" kibana
+      delegate_to: localhost
