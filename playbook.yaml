@@ -1,0 +1,9 @@
+- name: Install Kibana
+  hosts: localhost
+  connection: local
+
+  vars:
+    namespace: monitoring
+
+  roles:
+    - kibana

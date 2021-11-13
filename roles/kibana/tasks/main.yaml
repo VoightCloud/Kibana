@@ -1,0 +1,63 @@
+- name: Install Openshift Python Library
+  command: pip3 install openshift
+
+- name: Install Ansible Galaxy Kubernetes
+  command: ansible-galaxy collection install community.kubernetes
+
+- name: Install ElasticSearch repos
+  kubernetes.core.helm_repository:
+    name: elasticsearch
+    repo_url: "https://helm.elastic.co"
+
+- name: Update helm repos
+  command: helm repo update
+
+- name: Create namespace
+  kubernetes.core.k8s:
+    name: "{{ namespace }}"
+    api_version: v1
+    kind: namespace
+    state: present
+
+- name: Add ElasticSearch Secrets
+  kubernetes.core.helm:
+    name: "{{ namespace }}-secrets"
+    chart_ref: ./roles/kibana/files/secrets
+    release_namespace: "{{ namespace }}"
+    release_values:
+      namespace: "{{ namespace }}"
+      elasticsearch:
+        username: "{{ elasticsearchuser }}"
+        password: "{{ elasticsearchpassword }}"
+
+- name: Apply Kibana
+  kubernetes.core.helm:
+    name: "{{ deployment }}"
+    chart_ref: elasticsearch/kibana
+    chart_version: 7.15.0
+    release_namespace: "{{ namespace }}"
+    release_values:
+      elasticsearchHosts: "http://elasticsearch-master.monitoring:9200"
+      extraEnvs:
+        - name: "ELASTICSEARCH_USERNAME"
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-credentials
+              key: username
+        - name: 'ELASTICSEARCH_PASSWORD'
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-credentials
+              key: password
+      resources:
+        requests:
+          memory: "1Gi"
+        limits:
+          memory: "1Gi"
+      service:
+        type: LoadBalancer
+        loadBalancerIP: "192.168.137.76"
+
+
+
+
