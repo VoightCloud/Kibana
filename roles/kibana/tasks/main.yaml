@@ -57,6 +57,12 @@
       service:
         type: LoadBalancer
         loadBalancerIP: "192.168.137.76"
+      readinessProbe:
+        failureThreshold: 3
+        initialDelaySeconds: 10
+        periodSeconds: 30
+        successThreshold: 3
+        timeoutSeconds: 5
 
 
 
